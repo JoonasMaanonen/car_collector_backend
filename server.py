@@ -35,7 +35,7 @@ app = Starlette(on_startup=[setup_learner])
 
 @app.route('/')
 async def homepage(request):
-	return HTMLResponse('<h1>Welcome to the awesome car api</h1>')
+    return HTMLResponse('<h1>Welcome to the awesome car api!</h1>')
 
 @app.route('/predict', methods=['POST'])
 async def predict(request):
@@ -43,7 +43,7 @@ async def predict(request):
     img_bytes = await (img_data['file'].read())
     img = open_image(BytesIO(img_bytes))
     pred_class, pred_idx, outputs = learn.predict(img)
-
+    return HTMLResponse('<h1>This Should give predictions</h1>')
 
 if __name__== '__main__':
     if 'serve' in sys.argv:
