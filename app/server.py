@@ -1,4 +1,5 @@
 import pandas as pd
+import os
 import aiohttp
 import asyncio
 import uvicorn
@@ -46,5 +47,6 @@ async def predict(request):
 
 if __name__== '__main__':
     if 'serve' in sys.argv:
+        port = int(os.environ.get("PORT", 5000))
         uvicorn.run(app=app, host='0.0.0.0', port=5000, log_level='info')
 
