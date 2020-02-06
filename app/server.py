@@ -41,10 +41,11 @@ async def homepage(request):
 
 @app.route('/predict', methods=['POST'])
 async def predict(request):
-    img_data = await request.form()
+    img_data = await request.body()
     logging.info('1.')
     logging.info(img_data)
-    img_bytes = base64.b64decode(str(img_data['file']))
+    img_bytes = base64.b64decode(img_data)
+    #img_bytes = await (img_data.read())
     logging.info('2.')
     img = open_image(BytesIO(img_bytes))
     logging.info('3.')
