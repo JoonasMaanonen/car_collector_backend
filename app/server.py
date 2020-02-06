@@ -19,11 +19,9 @@ async def download_file(url, dest):
                 f.write(data)
 
 async def setup_learner():
-    print('Setting up the learner...')
     await download_file(EXPORT_FILE_URL, path / EXPORT_FILE_NAME)
     global learn
     learn = load_learner(path, EXPORT_FILE_NAME)
-    print('Learner setup succesfully!')
     return learn
 
 EXPORT_FILE_URL = 'https://www.dropbox.com/s/6f2v6vtccrq7fsb/export.pkl?dl=1'
@@ -43,7 +41,12 @@ async def predict(request):
     img_bytes = await (img_data['file'].read())
     img = open_image(BytesIO(img_bytes))
     pred_class, pred_idx, outputs = learn.predict(img)
-    return HTMLResponse('<h1>This Should give predictions</h1>')
+    top3_probs, top3_idxs = torch.topk(outputs, k=3)
+    classes = np.array(learn.data.classes)
+    top3_classes = list(classes[top3_idxs])
+    top3_probs = list(np.array(top3_probs))
+    return JSONResponse({'prediction_classes': top3_classes,
+                         'prediction_probs': top3_probs})
 
 if __name__== '__main__':
     if 'serve' in sys.argv:
