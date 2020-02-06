@@ -37,7 +37,7 @@ async def homepage(request):
 
 @app.route('/predict', methods=['POST'])
 async def predict(request):
-    img_data = await request.form()
+    img_data = await request.json()
     img_bytes = await (img_data['file'].read())
     img = open_image(BytesIO(img_bytes))
     pred_class, pred_idx, outputs = learn.predict(img)
