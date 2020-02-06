@@ -3,6 +3,8 @@ import os
 import aiohttp
 import asyncio
 import uvicorn
+import base64
+import json
 from starlette.applications import Starlette
 from starlette.responses import JSONResponse, HTMLResponse
 from starlette.routing import Route
@@ -37,16 +39,16 @@ async def homepage(request):
 
 @app.route('/predict', methods=['POST'])
 async def predict(request):
-    img_data = await request.json()
-    img_bytes = await (img_data['file'].read())
+    img_data = await request.form()
+    img_bytes = base64.b64decode(str(img_data['file']))
     img = open_image(BytesIO(img_bytes))
     pred_class, pred_idx, outputs = learn.predict(img)
     top3_probs, top3_idxs = torch.topk(outputs, k=3)
     classes = np.array(learn.data.classes)
     top3_classes = list(classes[top3_idxs])
-    top3_probs = list(np.array(top3_probs))
+    top3_probs = [str(x) for x in list(np.array(top3_probs))]
     return JSONResponse({'prediction_classes': top3_classes,
-                         'prediction_probs': top3_probs})
+                 'prediction_probs': top3_probs})
 
 if __name__== '__main__':
     if 'serve' in sys.argv:
