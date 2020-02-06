@@ -5,6 +5,7 @@ import asyncio
 import uvicorn
 import base64
 import json
+import logging
 from starlette.applications import Starlette
 from starlette.responses import JSONResponse, HTMLResponse
 from starlette.routing import Route
@@ -35,18 +36,28 @@ app = Starlette(on_startup=[setup_learner])
 
 @app.route('/')
 async def homepage(request):
+    logging.info('')
     return HTMLResponse('<h1>Welcome to the awesome car api!</h1>')
 
 @app.route('/predict', methods=['POST'])
 async def predict(request):
     img_data = await request.form()
+    logging.info('1.')
+    logging.info(img_data)
     img_bytes = base64.b64decode(str(img_data['file']))
+    logging.info('2.')
     img = open_image(BytesIO(img_bytes))
+    logging.info('3.')
     pred_class, pred_idx, outputs = learn.predict(img)
+    logging.info('4.')
     top3_probs, top3_idxs = torch.topk(outputs, k=3)
+    logging.info('5.')
     classes = np.array(learn.data.classes)
+    logging.info('6.')
     top3_classes = list(classes[top3_idxs])
+    logging.info('7.')
     top3_probs = [str(x) for x in list(np.array(top3_probs))]
+    logging.info('8.')
     return JSONResponse({'prediction_classes': top3_classes,
                  'prediction_probs': top3_probs})
 
