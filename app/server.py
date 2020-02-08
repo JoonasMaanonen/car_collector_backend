@@ -32,7 +32,7 @@ async def setup_learners():
 def get_prediction(img_data, learn):
     img_bytes = base64.b64decode(img_data)
     img = open_image(BytesIO(img_bytes))
-    img.save(f'/tmp/{randint(1,1000)}.jpg')
+    img.save(f'/var/data/{randint(1,1000)}.jpg')
     pred_class, pred_idx, outputs = learn.predict(img)
     top3_probs, top3_idxs = torch.topk(outputs, k=3)
     classes = np.array(learn.data.classes)
