@@ -22,10 +22,10 @@ async def download_file(url, dest):
                 f.write(data)
 
 async def setup_learners():
-    #await download_file(MODEL_FILE_URL, path / MODEL_FILE_NAME)
+    await download_file(MODEL_FILE_URL, path / MODEL_FILE_NAME)
     await download_file(BRAND_FILE_URL, path / BRAND_FILE_NAME)
     global brand_learner, model_learner
-    #model_learner = load_learner(path, MODEL_FILE_NAME)
+    model_learner = load_learner(path, MODEL_FILE_NAME)
     brand_learner = load_learner(path, BRAND_FILE_NAME)
 
 def get_prediction(img_data, learn):
@@ -39,7 +39,7 @@ def get_prediction(img_data, learn):
     return top3_classes, top3_probs
 
 
-MODEL_FILE_URL = ''
+MODEL_FILE_URL = 'https://www.dropbox.com/s/myqut34h04mhguk/export_model.pkl?dl=1'
 BRAND_FILE_URL = 'https://www.dropbox.com/s/tbd3v1zw9t07rfw/export_brand.pkl?dl=1'
 MODEL_FILE_NAME = 'export_model.pkl'
 BRAND_FILE_NAME = 'export_brand.pkl'
@@ -54,9 +54,12 @@ async def homepage(request):
 @app.route('/predict', methods=['POST'])
 async def predict(request):
     img_data = await request.body()
-    top3_classes, top3_probs = get_prediction(img_data, brand_learner)
-    return JSONResponse({'prediction_classes': top3_classes,
-                 'prediction_probs': top3_probs})
+    top3_brand_classes, top3_brand_probs = get_prediction(img_data, brand_learner)
+    top3_model_classes, top3_model_probs = get_prediction(img_data, model_learner)
+    return JSONResponse({'brand_classes': top3_brand_classes,
+			 'brand_probs': top3_brand_probs,
+			 'model_classes': top3_model_classes,
+			 'model_probs': top3_model_probs})
 
 if __name__== '__main__':
     if 'serve' in sys.argv:
