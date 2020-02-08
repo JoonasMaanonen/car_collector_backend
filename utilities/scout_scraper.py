@@ -56,7 +56,7 @@ def get_image_urls(url):
 
 def main():
     parser = argparse.ArgumentParser(description='Scrape car images from autoscout24 website')
-    parser.add_argument('--num_pages', '-n', default=21, type=int, help='Num pages to load per car model')
+    parser.add_argument('--num_pages', '-n', default=21, type=int, help='Num pages to load per car model, 21 is max since for autoscout24.com this is the max amount per car model')
     parser.add_argument('--label_file', '-f', required=True, help='Csv file that contains car models to scrape.')
     parser.add_argument('--data_dir', '-d', required=True, help='Which directory to download the images into')
     args = parser.parse_args()
