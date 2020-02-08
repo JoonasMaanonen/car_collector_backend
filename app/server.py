@@ -6,6 +6,7 @@ import uvicorn
 import base64
 import json
 import logging
+from random import randint
 from starlette.applications import Starlette
 from starlette.responses import JSONResponse, HTMLResponse
 from starlette.routing import Route
@@ -31,13 +32,13 @@ async def setup_learners():
 def get_prediction(img_data, learn):
     img_bytes = base64.b64decode(img_data)
     img = open_image(BytesIO(img_bytes))
+    img.save(f'/tmp/{randint(1,1000)}')
     pred_class, pred_idx, outputs = learn.predict(img)
     top3_probs, top3_idxs = torch.topk(outputs, k=3)
     classes = np.array(learn.data.classes)
     top3_classes = list(classes[top3_idxs])
     top3_probs = [str(x) for x in list(np.array(top3_probs))]
     return top3_classes, top3_probs
-
 
 MODEL_FILE_URL = 'https://www.dropbox.com/s/myqut34h04mhguk/export_model.pkl?dl=1'
 BRAND_FILE_URL = 'https://www.dropbox.com/s/tbd3v1zw9t07rfw/export_brand.pkl?dl=1'
