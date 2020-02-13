@@ -64,7 +64,7 @@ async def homepage(request):
 @app.route('/debug')
 async def debug(request):
     image_files = glob.glob('app/static/*.jpg')
-    response_string = "".join([f'<img src="{image}"> <br>' for image in image_files])
+    response_string = "".join([f'<img src="{image}" width="500" height="500" > <br>' for image in image_files])
     return HTMLResponse(response_string)
 
 @app.route('/predict', methods=['POST'])
