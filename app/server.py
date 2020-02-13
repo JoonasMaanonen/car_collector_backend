@@ -32,10 +32,11 @@ async def setup_learners():
     model_learner = load_learner(path, MODEL_FILE_NAME)
     brand_learner = load_learner(path, BRAND_FILE_NAME)
 
-def save_image(img_data):
+def save_image(img_data, learn):
     img_bytes = base64.b64decode(img_data)
     img = open_image(BytesIO(img_bytes))
-    img.save(f'app/static/{randint(1,1000)}.jpg')
+    transformed_img, pred_class, pred_idx, outputs = learn.predict(img, return_x=True)
+    transformed_img.save(f'app/static/{randint(1,1000)}.jpg')
 
 def get_prediction(img_data, learn):
     img_bytes = base64.b64decode(img_data)
@@ -69,7 +70,7 @@ async def debug(request):
 @app.route('/predict', methods=['POST'])
 async def predict(request):
     img_data = await request.body()
-    save_image(img_data)
+    save_image(img_data, brand_learner)
     top3_brand_classes, top3_brand_probs = get_prediction(img_data, brand_learner)
     top3_model_classes, top3_model_probs = get_prediction(img_data, model_learner)
     return JSONResponse({'brand_classes': top3_brand_classes,
