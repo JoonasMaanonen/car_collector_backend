@@ -54,7 +54,7 @@ BRAND_FILE_NAME = 'export_brand.pkl'
 
 path = Path(__file__).parent
 app = Starlette(on_startup=[setup_learners])
-app.mount('/static', StaticFiles(directory='app/static'))
+app.mount('/app/static', StaticFiles(directory='app/static'))
 
 @app.route('/')
 async def homepage(request):
@@ -63,7 +63,7 @@ async def homepage(request):
 @app.route('/debug')
 async def debug(request):
     image_files = glob.glob('app/static/*.jpg')
-    response_string = "".join([f'<img src="{image.split("/")[-1]}"> <br>' for image in image_files])
+    response_string = "".join([f'<img src="{image}"> <br>' for image in image_files])
     return HTMLResponse(response_string)
 
 @app.route('/predict', methods=['POST'])
