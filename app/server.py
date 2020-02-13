@@ -11,6 +11,8 @@ from random import randint
 from starlette.applications import Starlette
 from starlette.responses import JSONResponse, HTMLResponse
 from starlette.routing import Route
+from starlette.routing import Mount
+from starlette.staticfiles import StaticFiles
 from fastai.vision import *
 
 # Based on https://github.com/render-examples/fastai-v3/blob/master/app/server.py
@@ -46,8 +48,9 @@ BRAND_FILE_URL = 'https://www.dropbox.com/s/tbd3v1zw9t07rfw/export_brand.pkl?dl=
 MODEL_FILE_NAME = 'export_model.pkl'
 BRAND_FILE_NAME = 'export_brand.pkl'
 
+routes = [Mount('/var/data', app=StaticFiles(directory='/var/data'), name="static"),]
 path = Path(__file__).parent
-app = Starlette(on_startup=[setup_learners])
+app = Starlette(routes=routes, on_startup=[setup_learners])
 
 @app.route('/')
 async def homepage(request):
@@ -56,7 +59,7 @@ async def homepage(request):
 @app.route('/debug')
 async def debug(request):
     image_files = glob.glob('/var/data/*.jpg')
-    response_string = "".join([f'<img src="{image}"> <br>' for image in image_files])
+    response_string = "".join([f'<img src="{image.strip()}" alt="Random car"> <br>' for image in image_files])
     return HTMLResponse(response_string)
 
 @app.route('/predict', methods=['POST'])
