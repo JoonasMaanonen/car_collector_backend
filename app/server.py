@@ -35,7 +35,7 @@ async def setup_learners():
 def get_prediction(img_data, learn):
     img_bytes = base64.b64decode(img_data)
     img = open_image(BytesIO(img_bytes))
-    img.save(f'/var/data/{randint(1,1000)}.jpg')
+    img.save(f'app/static/{randint(1,1000)}.jpg')
     pred_class, pred_idx, outputs = learn.predict(img)
     top3_probs, top3_idxs = torch.topk(outputs, k=3)
     classes = np.array(learn.data.classes)
@@ -48,9 +48,9 @@ BRAND_FILE_URL = 'https://www.dropbox.com/s/tbd3v1zw9t07rfw/export_brand.pkl?dl=
 MODEL_FILE_NAME = 'export_model.pkl'
 BRAND_FILE_NAME = 'export_brand.pkl'
 
-routes = [Mount('/var/data', app=StaticFiles(directory='/var/data'), name="static"),]
 path = Path(__file__).parent
-app = Starlette(routes=routes, on_startup=[setup_learners])
+app = Starlette(on_startup=[setup_learners])
+app.mount('/static', StaticFiles(directory='app/static'))
 
 @app.route('/')
 async def homepage(request):
@@ -58,7 +58,7 @@ async def homepage(request):
 
 @app.route('/debug')
 async def debug(request):
-    image_files = glob.glob('/var/data/*.jpg')
+    image_files = glob.glob('app/static/*.jpg')
     response_string = "".join([f'<img src="{image.strip()}" alt="Random car"> <br>' for image in image_files])
     return HTMLResponse(response_string)
 
