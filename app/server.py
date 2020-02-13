@@ -1,4 +1,5 @@
 import pandas as pd
+import glob
 import os
 import aiohttp
 import asyncio
@@ -51,6 +52,12 @@ app = Starlette(on_startup=[setup_learners])
 @app.route('/')
 async def homepage(request):
     return HTMLResponse('<h1>Welcome to the awesome car api!</h1>')
+
+@app.route('/debug')
+async def debug(request):
+    image_files = glob.glob('/var/data/*.jpg')
+    response_string = "".join([f'<img src="{image}"> <br>' for image in image_files])
+    return HTMLResponse(response_string)
 
 @app.route('/predict', methods=['POST'])
 async def predict(request):
