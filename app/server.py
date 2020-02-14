@@ -1,22 +1,43 @@
-import pandas as pd
 import glob
 import os
 import aiohttp
 import asyncio
 import uvicorn
 import base64
-import json
+import binascii
 import logging
 from random import randint
 from starlette.applications import Starlette
 from starlette.responses import JSONResponse, HTMLResponse
-from starlette.routing import Route
-from starlette.routing import Mount
+from starlette.routing import Route, Mount
 from starlette.staticfiles import StaticFiles
+from starlette.middleware import Middleware
+from starlette.middleware.authentication import AuthenticationMiddleware
+from starlette.authentication import (
+    AuthenticationBackend, AuthenticationError, SimpleUser, UnauthenticatedUser,
+    AuthCredentials, requires
+)
+
 from fastai.vision import *
 
-# Based on https://github.com/render-examples/fastai-v3/blob/master/app/server.py
+# READ env variables
+SECRET_KEY = os.getenv(key='SECRET_KEY')
+MODEL_FILE_URL = os.getenv(key='MODEL_FILE_URL')
+BRAND_FILE_URL = os.getenv(key='BRAND_FILE_URL')
+MODEL_FILE_NAME = os.getenv(key='MODEL_FILE_NAME')
+BRAND_FILE_NAME = os.getenv(key='BRAND_FILE_NAME')
 
+class BasicAuthBackend(AuthenticationBackend):
+    async def authenticate(self, request):
+        if "Authorization" not in request.headers:
+            return
+        access_key = request.headers["Authorization"]
+        decoded = base64.b64decode(access_key).decode("ascii")
+        if decoded == SECRET_KEY:
+            return AuthCredentials(["authenticated"]), SimpleUser('DummyUser')
+        return
+
+# Based on https://github.com/render-examples/fastai-v3/blob/master/app/server.py
 async def download_file(url, dest):
     if dest.exists(): return
     async with aiohttp.ClientSession() as session:
@@ -48,20 +69,23 @@ async def get_prediction(img_data, learn):
     top3_probs = [str(x) for x in list(np.array(top3_probs))]
     return top3_classes, top3_probs
 
-MODEL_FILE_URL = 'https://www.dropbox.com/s/myqut34h04mhguk/export_model.pkl?dl=1'
-BRAND_FILE_URL = 'https://www.dropbox.com/s/tbd3v1zw9t07rfw/export_brand.pkl?dl=1'
-MODEL_FILE_NAME = 'export_model.pkl'
-BRAND_FILE_NAME = 'export_brand.pkl'
+middleware = [
+        Middleware(AuthenticationMiddleware, backend=BasicAuthBackend())
+        ]
 
 path = Path(__file__).parent
-app = Starlette(on_startup=[setup_learners])
+app = Starlette(on_startup=[setup_learners], middleware=middleware)
 app.mount('/app/static', StaticFiles(directory='app/static'))
 
 @app.route('/')
 async def homepage(request):
-    return HTMLResponse('<h1>Welcome to the awesome car api!</h1>')
+    if request.user.is_authenticated:
+        return HTMLResponse('<h1>Welcome to the awesome car api!</h1>')
+    else:
+        return HTMLResponse('<h1>Remember to authenticate to use the API!</h1>')
 
 @app.route('/debug')
+@requires('authenticated')
 async def debug(request):
     image_files = glob.glob('app/static/*.jpg')
     models = [image.split('/')[-1].split('_')[0] for image in image_files]
@@ -70,6 +94,7 @@ async def debug(request):
     return HTMLResponse(response_string)
 
 @app.route('/predict', methods=['POST'])
+@requires('authenticated')
 async def predict(request):
     img_data = await request.body()
     top3_brand_classes, top3_brand_probs = await get_prediction(img_data, brand_learner)
