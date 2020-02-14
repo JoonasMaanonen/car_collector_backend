@@ -85,7 +85,6 @@ async def homepage(request):
         return HTMLResponse('<h1>Remember to authenticate to use the API!</h1>')
 
 @app.route('/debug')
-@requires('authenticated')
 async def debug(request):
     image_files = glob.glob('app/static/*.jpg')
     models = [image.split('/')[-1].split('_')[0] for image in image_files]
