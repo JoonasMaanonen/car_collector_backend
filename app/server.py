@@ -6,6 +6,7 @@ import uvicorn
 import base64
 import binascii
 import logging
+from fastai.vision import *
 from random import randint
 from starlette.applications import Starlette
 from starlette.responses import JSONResponse, HTMLResponse
@@ -17,8 +18,6 @@ from starlette.authentication import (
     AuthenticationBackend, AuthenticationError, SimpleUser, UnauthenticatedUser,
     AuthCredentials, requires
 )
-
-from fastai.vision import *
 
 # READ env variables
 SECRET_KEY = os.getenv(key='SECRET_KEY')
@@ -37,7 +36,7 @@ class BasicAuthBackend(AuthenticationBackend):
             return AuthCredentials(["authenticated"]), SimpleUser('DummyUser')
         return
 
-# Based on https://github.com/render-examples/fastai-v3/blob/master/app/server.py
+
 async def download_file(url, dest):
     if dest.exists(): return
     async with aiohttp.ClientSession() as session:
@@ -68,6 +67,7 @@ async def get_prediction(img_data, learn):
     top3_classes = list(classes[top3_idxs])
     top3_probs = [str(x) for x in list(np.array(top3_probs))]
     return top3_classes, top3_probs
+
 
 middleware = [
         Middleware(AuthenticationMiddleware, backend=BasicAuthBackend())
@@ -104,6 +104,7 @@ async def predict(request):
 			 'brand_probs': top3_brand_probs,
 			 'model_classes': top3_model_classes,
 			 'model_probs': top3_model_probs})
+
 
 if __name__== '__main__':
     if 'serve' in sys.argv:
