@@ -24,7 +24,7 @@ matplotlib==3.1.2
 multidict==4.7.4
 murmurhash==1.0.2
 numexpr==2.7.1
-numpy==1.18.1
+numpy==1.22.0
 nvidia-ml-py3==7.352.0
 packaging==20.1
 pandas==1.0.0
